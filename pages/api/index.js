@@ -54,7 +54,7 @@ async function parseSunriseData(sunriseData) {
 
   const daylightLength = calculateDaylight(sunriseData.data.results.sunrise, sunriseData.data.results.sunset)
 
-  const tweetString = `Today the sun will rise at ${sunriseTime} and set ${daylightLength} later at ${sunsetTime} (posted ${format(new Date(), 'HH:mm:ss')})`
+  const tweetString = `Today in Berlin the sun will rise at ${sunriseTime} and set ${daylightLength} later at ${sunsetTime} (posted ${format(new Date(), 'HH:mm:ss')})`
   
   return tweetString
 }
