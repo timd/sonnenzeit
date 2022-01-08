@@ -66,7 +66,7 @@ async function parseSunriseData(todayData, yesterdayData) {
 
   const deltaType = (todayData.data.results.day_length > yesterdayData.data.results.day_length ? "more" : "less")
   
-  const deltaString = `There is ${daylightDeltaString} ${deltaType} daylight than yesterday`
+  const deltaString = `There will be ${daylightDeltaString} ${deltaType} daylight than yesterday`
 
   const sunsetTime = convertUTCDateToLocalDate(todayData.data.results.sunset)
   const daylightLength = calculateDaylight(todayData.data.results.sunrise, todayData.data.results.sunset)
