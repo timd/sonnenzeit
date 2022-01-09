@@ -8,14 +8,14 @@ const de_client = new TwitterApi({
   appKey: process.env.DE_APPKEY,
   appSecret: process.env.DE_APPSECRET,
   accessToken: process.env.DE_ACCESSTOKEN,
-  //accessSecret: process.env.DE_ACCESSSECRET
+  accessSecret: process.env.DE_ACCESSSECRET
 });
 
 const en_client = new TwitterApi({
   appKey: process.env.EN_APPKEY,
   appSecret: process.env.EN_APPSECRET,
   accessToken: process.env.EN_ACCESSTOKEN,
-  //  accessSecret: process.env.EN_ACCESSSECRET
+  accessSecret: process.env.EN_ACCESSSECRET
 });
 
 const berlinLat = 52.5170365
