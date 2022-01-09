@@ -99,8 +99,8 @@ async function parseSunriseData(todayData, yesterdayData, locale) {
   const en_daylightLength = calculateDaylight(todayData.data.results.sunrise, todayData.data.results.sunset, "en")
   const de_daylightLength = calculateDaylight(todayData.data.results.sunrise, todayData.data.results.sunset, "de")
 
-  const en_tweetString = `Today in Berlin the sun will rise at ${todaySunriseTime} and set ${en_daylightLength} later at ${sunsetTime}. ${en_deltaString} (posted ${format(new Date(), 'HH:mm:ss')})`
-  const de_tweetString = `Heute in Berlin geht die Sonne um ${todaySunriseTime} auf, und wird nach ${de_daylightLength} um ${sunsetTime} untergehen. ${de_deltaString} (geposted ${format(new Date(), 'HH:mm:ss')})`
+  const en_tweetString = `Today in Berlin the sun will rise at ${todaySunriseTime} and set ${en_daylightLength} later at ${sunsetTime}. ${en_deltaString}`
+  const de_tweetString = `Heute in Berlin geht die Sonne um ${todaySunriseTime} auf, und wird nach ${de_daylightLength} um ${sunsetTime} untergehen. ${de_deltaString}`
 
   if (locale == "en") {
     return en_tweetString 
