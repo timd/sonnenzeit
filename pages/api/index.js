@@ -3,12 +3,13 @@ import { TwitterApi } from 'twitter-api-v2';
 import axios from 'axios';
 const { zonedTimeToUtc, utcToZonedTime, format } = require('date-fns-tz')
 import { intervalToDuration, parseISO, subDays, lightFormat, formatDistanceStrict } from 'date-fns'
+require('dotenv').config()
 
 const client = new TwitterApi({
-  appKey: 'kK2Xs6ayhzwqyJn0o5FkjaPEs',
-  appSecret: 'w8i0kt6futvKNDAnpWsJdbf5lcZr4xJSaHhkAUYfk7xTys1MUp',
-  accessToken: '1479805238282526721-zOjpYUoACpw3dtiOlbfp2nuShyEBfw',
-  accessSecret: '8HpDJSoFKs8nmFlSoAlZ0NC94QWP4BWJ1UgDaLjniEFZR',
+  appKey: process.env.APPKEY,
+  appSecret: process.env.APPSECRET,
+  accessToken: process.env.ACCESSTOKEN,
+  accessSecret: process.env.ACCESSSECRET
 });
 
 async function fetch() {
