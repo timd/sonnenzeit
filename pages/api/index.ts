@@ -1,21 +1,26 @@
 import { TwitterApi } from 'twitter-api-v2';
 import axios from 'axios';
-const { utcToZonedTime, format } = require('date-fns-tz')
+import { utcToZonedTime, format } from 'date-fns-tz';
 import { intervalToDuration, parseISO, lightFormat, formatDistanceStrict } from 'date-fns'
+//import contentGenerator from '../../utils/contentGenerator'
+
 require('dotenv').config()
+
+// const generator = contentGenerator()
+// generator.locale = "en"
 
 const de_client = new TwitterApi({
   appKey: process.env.DE_APPKEY,
   appSecret: process.env.DE_APPSECRET,
   accessToken: process.env.DE_ACCESSTOKEN,
-  accessSecret: process.env.DE_ACCESSSECRET
+  //accessSecret: process.env.DE_ACCESSSECRET
 });
 
 const en_client = new TwitterApi({
   appKey: process.env.EN_APPKEY,
   appSecret: process.env.EN_APPSECRET,
   accessToken: process.env.EN_ACCESSTOKEN,
-  accessSecret: process.env.EN_ACCESSSECRET
+  //accessSecret: process.env.EN_ACCESSSECRET
 });
 
 const berlinLat = 52.5170365
@@ -65,19 +70,22 @@ function calculateDaylight(sunrise, sunset, locale) {
 
 function daylightDelta(todayData, yesterdayData, locale) {
     
-    const daylightDeltaSeconds = (todayData.data.results.day_length - yesterdayData.data.results.day_length)
-    const minutesDelta = parseInt(daylightDeltaSeconds / 60)
-    const secsDelta = daylightDeltaSeconds - (minutesDelta * 60)
+  let todayLength = todayData.data.results.day_length as number;
+  let yesterdayLength = todayData.data.results.day_length as number;
+  let daylightDeltaSeconds = todayLength - yesterdayLength;
 
-    const en_minLabel = (minutesDelta > 1 ? "mins" : "min")
-    const en_secLabel = (secsDelta > 1 ? "secs" : "sec")
+  const minutesDelta = daylightDeltaSeconds / 60
+  const secsDelta = daylightDeltaSeconds - (minutesDelta * 60)
 
-    const de_minLabel = "Min"
-    const de_secLabel = "Sek"
+  const en_minLabel = (minutesDelta > 1 ? "mins" : "min")
+  const en_secLabel = (secsDelta > 1 ? "secs" : "sec")
 
-    const deltaString = (locale == "en") ? `${minutesDelta} ${en_minLabel} ${secsDelta} ${en_secLabel}` : `${minutesDelta} ${de_minLabel} ${secsDelta} ${de_secLabel}`
+  const de_minLabel = "Min"
+  const de_secLabel = "Sek"
 
-    return deltaString
+  const deltaString = (locale == "en") ? `${minutesDelta} ${en_minLabel} ${secsDelta} ${en_secLabel}` : `${minutesDelta} ${de_minLabel} ${secsDelta} ${de_secLabel}`
+
+  return deltaString
 }
 
 async function parseSunriseData(todayData, yesterdayData, locale) {
@@ -148,6 +156,7 @@ export default async function handler(req, res) {
   var fetchedTodayResponse
 
   getYesterday().then ( yesterdayResponse => {
+    console.log(yesterdayResponse)
     fetchedYesterdayResponse = yesterdayResponse
     return getToday()
   }).then( todayResponse => {
