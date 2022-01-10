@@ -1,7 +1,4 @@
 import { ContentGenerator }  from '../../utils/contentGenerator';
-import cart from '../../pages/api/cart';
-import { getPageFiles } from 'next/dist/server/get-page-files';
-import { Axios } from 'axios';
 
 const gen = new ContentGenerator();
 
@@ -52,85 +49,79 @@ const today = {
 }
 
 test('calculates correct daylight delta string in English', () => {
-  gen.locale = "en"
-  let result = gen.daylightDelta(today, yesterday)
+  let result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("10 mins 35 secs")
 });
 
 test('calculates plurals correctly in English', () => {
-  gen.locale = "en"
 
   // 0 mins 0 secs
   today.data.results.day_length = 0
-  let result = gen.daylightDelta(today, yesterday)
+  let result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("0 mins 0 secs")
 
   // 0 mins 1 sec
   today.data.results.day_length = 1 
-  result = gen.daylightDelta(today, yesterday)
+  result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("0 mins 1 sec")
 
   // 0 mins 10 secs
   today.data.results.day_length = 10 
-  result = gen.daylightDelta(today, yesterday)
+  result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("0 mins 10 secs")
 
   // 1 min 0 secs
   today.data.results.day_length = 60
-  result = gen.daylightDelta(today, yesterday)
+  result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("1 min 0 secs")
 
   // 1 min 30 secs
   today.data.results.day_length = 90
-  result = gen.daylightDelta(today, yesterday)
+  result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("1 min 30 secs")
 
   // 10 min 0 secs
   today.data.results.day_length = 600
-  result = gen.daylightDelta(today, yesterday)
+  result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("10 mins 0 secs")
   
   // 10 min 1 sec
   today.data.results.day_length = 601
-  result = gen.daylightDelta(today, yesterday)
+  result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("10 mins 1 sec")
 
   // 10 min 5 secs
   today.data.results.day_length = 605
-  result = gen.daylightDelta(today, yesterday)
+  result = gen.daylightDelta(today, yesterday, "en")
   expect(result).toEqual("10 mins 5 secs")
 
 });
 
 test('calculates correct daylight delta string in German', () => {
-  gen.locale = "de"
   today.data.results.day_length = 635
-  let result = gen.daylightDelta(today, yesterday)
+  let result = gen.daylightDelta(today, yesterday, "de")
   expect(result).toEqual("10 Min 35 Sek")
 });
 
 test('calculates correct daylight hours in English', () => {
   
-  gen.locale = "en"
-  
   // 8 hours, 1 minute
-  let res8h1m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:01:37+00:00")
+  let res8h1m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:01:37+00:00", "en")
   expect(res8h1m).toEqual("8 hours, 1 minute")
 
   // 8 hours, 10 minutes
-  let res8h10m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:10:37+00:00")
+  let res8h10m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:10:37+00:00", "en")
   expect(res8h10m).toEqual("8 hours, 10 minutes")
 });
 
 test('calculates correct daylight hours in German', () => {
-  gen.locale = "de"
 
   // 8 hours, 1 minute
-  let res8h1m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:01:37+00:00")
+  let res8h1m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:01:37+00:00", "de")
   expect(res8h1m).toEqual("8 Stunden, 1 Minute")
 
   // 8 hours, 10 minutes
-  let res8h10m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:10:37+00:00")
+  let res8h10m = gen.calculateDaylight("2022-01-08T00:00:00+00:00", "2022-01-08T08:10:37+00:00", "de")
   expect(res8h10m).toEqual("8 Stunden, 10 Minuten")
 });
 
@@ -141,13 +132,11 @@ test('convertUTCDateToLocalDate', () => {
 });
 
 test('parseSunriseData in English', () => {
-  gen.locale = "en"
-  let result = gen.parseSunriseData(today, yesterday)
+  let result = gen.parseSunriseData(today, yesterday, "en")
   expect(result).toEqual("Today in Berlin the sun will rise at 09:00:00 and set 10 hours, 1 minute later at 19:01:02. There will be 10 mins 35 secs more daylight than yesterday")
 });
 
 test('parseSunriseData in German', () => {
-  gen.locale = "de"
-  let result = gen.parseSunriseData(today, yesterday)
+  let result = gen.parseSunriseData(today, yesterday, "de")
   expect(result).toEqual("Heute in Berlin geht die Sonne um 09:00:00 auf, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
 });
