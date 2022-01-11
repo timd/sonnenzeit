@@ -1,4 +1,5 @@
 import { ContentGenerator }  from '../../utils/contentGenerator';
+import { parseISO, isAfter, isBefore } from 'date-fns'
 
 const gen = new ContentGenerator();
 
@@ -131,12 +132,34 @@ test('convertUTCDateToLocalDate', () => {
   expect(convertedDate).toEqual("01:00:00")
 });
 
-test('parseSunriseData in English', () => {
-  let result = gen.parseSunriseData(today, yesterday, "en")
-  expect(result).toEqual("Today in Berlin the sun will rise at 09:00:00 and set 10 hours, 1 minute later at 19:01:02. There will be 10 mins 35 secs more daylight than yesterday")
+test('correct tense when tweet is posted after sunrise in English', () => {
+  // sunrise at 2022-01-09T07:00:00+00:00, test run at 12h00
+  let testDate = parseISO("2022-01-09T12:00:00+00:00")
+  let sunrise = parseISO(today.data.results.sunrise)
+  let result = gen.parseSunriseData(today, yesterday, "en", testDate)
+  expect(result).toEqual("Today in Berlin the sun rose at 09:00:00 and will set 10 hours, 1 minute later at 19:01:02. There will be 10 mins 35 secs more daylight than yesterday")
 });
 
-test('parseSunriseData in German', () => {
-  let result = gen.parseSunriseData(today, yesterday, "de")
+test('correct tense when tweet is posted after sunrise in German', () => {
+  // sunrise at 2022-01-09T07:00:00+00:00, test run at 10h00
+  let testDate = parseISO("2022-01-09T10:00:00+00:00")
+  let sunrise = parseISO(today.data.results.sunrise)
+  let result = gen.parseSunriseData(today, yesterday, "de", testDate)
+  expect(result).toEqual("Heute in Berlin hat die Sonne um 09:00:00 aufgegangen, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
+});
+
+test('correct tense when tweet is posted before sunrise in English', () => {
+  // sunrise at 2022-01-09T07:00:00+00:00, test run at 03h00
+  let testDate = parseISO("2022-01-09T03:00:00+00:00")
+  let sunrise = parseISO(today.data.results.sunrise)
+  let result = gen.parseSunriseData(today, yesterday, "en", testDate)
+  expect(result).toEqual("Today in Berlin the sun will rise at 09:00:00 and will set 10 hours, 1 minute later at 19:01:02. There will be 10 mins 35 secs more daylight than yesterday")
+});
+
+test('correct tense when tweet is posted before sunrise in German', () => {
+  // sunrise at 2022-01-09T07:00:00+00:00, test run at 03h00
+  let testDate = parseISO("2022-01-09T03:00:00+00:00")
+  let sunrise = parseISO(today.data.results.sunrise)
+  let result = gen.parseSunriseData(today, yesterday, "de", testDate)
   expect(result).toEqual("Heute in Berlin geht die Sonne um 09:00:00 auf, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
 });

@@ -68,11 +68,11 @@ export default async function handler(req, res) {
     return getToday()
   }).then( todayResponse => {
     fetchedTodayResponse = todayResponse
-    return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, "en")
+    return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, "en", new Date())
   }).then( tweetContent => {
     return post(tweetContent, "en");
   }).then( (postResults) => {
-    return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, "de")
+    return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, "de", new Date())
   }).then( tweetContent => {
     return post(tweetContent, "de");
   }).then( postResults => {
