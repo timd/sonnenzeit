@@ -1,5 +1,6 @@
 import { ContentGenerator }  from '../../utils/contentGenerator';
 import { parseISO, isAfter, isBefore } from 'date-fns'
+import { enGB, de } from 'date-fns/locale'
 
 const gen = new ContentGenerator();
 
@@ -111,7 +112,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
 
-    let result = gen.sunriseDelta(zeroDeltaToday, zeroDeltaYesterday, "en")
+    let result = gen.sunriseDelta(zeroDeltaToday, zeroDeltaYesterday, enGB)
     expect(result).toEqual("the same as")
     })
 
@@ -134,7 +135,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "en")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, enGB)
     expect(result).toEqual("1 second later")
     })
 
@@ -157,7 +158,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "en")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, enGB)
     expect(result).toEqual("10 seconds later")
     })
 
@@ -178,7 +179,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "en")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, enGB)
     expect(result).toEqual("1 minute later")
     })
 
@@ -199,7 +200,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "en")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, enGB)
     expect(result).toEqual("10 minutes 10 seconds later")
     })
 
@@ -226,7 +227,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
 
-    let result = gen.sunriseDelta(zeroDeltaToday, zeroDeltaYesterday, "de")
+    let result = gen.sunriseDelta(zeroDeltaToday, zeroDeltaYesterday, de)
     expect(result).toEqual("das gleiche wie")
     })
   
@@ -249,7 +250,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "de")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, de)
     expect(result).toEqual("1 Sekunde später")
     })
   
@@ -272,7 +273,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "de")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, de)
     expect(result).toEqual("10 Sekunden später")
     })
   
@@ -293,7 +294,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "de")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, de)
     expect(result).toEqual("1 Minute später")
     })
   
@@ -314,7 +315,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "de")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, de)
     expect(result).toEqual("10 Minuten 10 Sekunden später")
     })
 
@@ -341,7 +342,7 @@ describe("when calculating sunrise/sunset deltas", () => {
       }
     }
     
-    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, "en")
+    let result = gen.sunriseDelta(oneSDeltaToday, oneSDeltaYesterday, enGB)
     expect(result).toEqual("1 second earlier")
     })
 

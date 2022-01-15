@@ -1,7 +1,7 @@
 import { AxiosResponse } from 'axios';
-import { intervalToDuration, parseISO, isBefore, formatDistanceStrict } from 'date-fns'
-import { utcToZonedTime, format } from 'date-fns-tz';
-import { enGB, de } from 'date-fns/locale'
+import { format, intervalToDuration, parseISO, isBefore, formatDistanceStrict, set } from 'date-fns'
+import { utcToZonedTime } from 'date-fns-tz';
+import { enGB, de, tr } from 'date-fns/locale'
 
 class ContentGenerator {
 
@@ -99,57 +99,90 @@ class ContentGenerator {
   
   }
 
-  sunriseDelta(todayData, yesterdayData, locale) {
-    const todayH = format(new Date(todayData.data.results.sunrise), "HH");
-    const todayM = format(new Date(todayData.data.results.sunrise), "mm");
-    const todayS = format(new Date(todayData.data.results.sunrise), "ss");
-
-    const yesterdayH = format(new Date(yesterdayData.data.results.sunrise), "HH");
-    const yesterdayM = format(new Date(yesterdayData.data.results.sunrise), "mm");
-    const yesterdayS = format(new Date(yesterdayData.data.results.sunrise), "ss");
-
-    const today = new Date(2022,1,1,parseInt(todayH),parseInt(todayM),parseInt(todayS))
-    const yesterday = new Date(2022,1,1,parseInt(yesterdayH),parseInt(yesterdayM),parseInt(yesterdayS))
-
-    const todaySecs = new Date(2022,1,1,0,0,parseInt(todayS))
-    const yesterdaySecs = new Date(2022,1,1,0,0,parseInt(yesterdayS))
+  createNormalisedTimes(tdayData,ydayData): Array<Date> {
     
-    const todayMins = new Date(2022,1,1,0,parseInt(todayM),0)
-    const yesterdayMins = new Date(2022,1,1,0,parseInt(yesterdayM),0)
+    const tDay = new Date(tdayData.data.results.sunrise)
+    const yDay = new Date(ydayData.data.results.sunrise)
+
+    const ntDay = set(tDay, { year: 2022, month: 9, date: 1 })
+    const nyDay = set(yDay, { year: 2022, month: 9, date: 1 })
+
+    console.log(ntDay)
+    console.log(nyDay)
+
+    return [ntDay, nyDay]
+  }
+
+  dayIsLonger(tdayData, ydayData): boolean {
+    return true;
+  }
+
+  sunriseDelta(todayData, yesterdayData, loc) {
+
+    
+    
+    // Create dummy dates
+    const checkTdayTime = new Date(tdayTime)
+    const checkYdayTime = new Date(ydayTime)
+
+    console.log(checkTdayTime);
+    console.log(checkYdayTime)
+
+
+  
+
+    // Check if today's getting longer or shorter
+    isBefore(today, yesterday) ? isLonger = true : isLonger = false;
+
+    let firstData: any
+    let secondData: any
+    let suffix: string
+
+    // Arrange times
+    if (isLonger) {
+      firstData = yesterdayData;
+      secondData = todayData;
+      (loc.code === "en-GB" ? suffix = "earlier" : suffix = "früher")
+    } else {
+      firstData = todayData;
+      secondData = yesterdayData;
+      (loc.code === "en-GB" ? suffix = "later" : suffix = "später")
+    }
+
+    // Extract data from swapped dates
+    const swappedTodayH = format(new Date(firstData.data.results.sunrise), "HH");
+    const swappedTodayM = format(new Date(firstData.data.results.sunrise), "mm");
+    const swappedTodayS = format(new Date(firstData.data.results.sunrise), "ss");
+
+    const swappedYesterdayH = format(new Date(secondData.data.results.sunrise), "HH");
+    const swappedYesterdayM = format(new Date(secondData.data.results.sunrise), "mm");
+    const swappedYesterdayS = format(new Date(secondData.data.results.sunrise), "ss");
+
+    const todaySecs = new Date(2022,1,1,0,0,parseInt(swappedTodayS))
+    const yesterdaySecs = new Date(2022,1,1,0,0,parseInt(swappedYesterdayS))
+    
+    const todayMins = new Date(2022,1,1,0,parseInt(swappedTodayM),0)
+    const yesterdayMins = new Date(2022,1,1,0,parseInt(swappedYesterdayM),0)
     
     let results: string
     let secsResult: string
     let minsResult: string
-    let suffix: string
 
-    if (isBefore(today, yesterday)){
-      if (locale === "en") {
-        suffix = "earlier"
-        results = formatDistanceStrict(today, yesterday, {locale: enGB})
-        secsResult = formatDistanceStrict(todaySecs, yesterdaySecs, {locale: enGB})
-        minsResult = formatDistanceStrict(todayMins, yesterdayMins, {locale: enGB})  
-      } else {
-        suffix = "früher"
-        secsResult = formatDistanceStrict(todaySecs, yesterdaySecs, {locale: de})
-        minsResult = formatDistanceStrict(todayMins, yesterdayMins, {locale: de})  
-      }
+    if (loc.code === "en-GB") {
+      results = formatDistanceStrict(today, yesterday, {locale: enGB})
+      secsResult = formatDistanceStrict(todaySecs, yesterdaySecs, {locale: enGB})
+      minsResult = formatDistanceStrict(todayMins, yesterdayMins, {locale: enGB})  
     } else {
-      if (locale === "en") {
-        suffix = "later"
-        secsResult = formatDistanceStrict(yesterdaySecs, todaySecs, {locale: enGB})
-        minsResult = formatDistanceStrict(yesterdayMins, todayMins, {locale: enGB})  
-      } else {
-        suffix = "später"
-        secsResult = formatDistanceStrict(todaySecs, yesterdaySecs, {locale: de})
-        minsResult = formatDistanceStrict(todayMins, yesterdayMins, {locale: de})  
-      }
+      results = formatDistanceStrict(today, yesterday, {locale: de})
+      secsResult = formatDistanceStrict(todaySecs, yesterdaySecs, {locale: de})
+      minsResult = formatDistanceStrict(todayMins, yesterdayMins, {locale: de})  
     }
-    
+
     const secsDelta = secsResult.split(" ")[0]
     const minsDelta = minsResult.split(" ")[0]
 
     if (secsDelta === "0" && minsDelta === "0") {
-      if (locale === "en") {
+      if (loc.code === "en-GB") {
         return "the same as"
       } else {
         return "das gleiche wie"
