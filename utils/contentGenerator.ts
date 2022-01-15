@@ -1,6 +1,7 @@
 import { AxiosResponse } from 'axios';
 import { intervalToDuration, parseISO, isBefore, isAfter } from 'date-fns'
 import { utcToZonedTime, format } from 'date-fns-tz';
+import { Location } from './latlong';
 
 class ContentGenerator {
 
@@ -49,18 +50,17 @@ class ContentGenerator {
     
   }
 
-  convertUTCDateToLocalDate(localDate) {
+  convertUTCDateToLocalDate(localDate, timezone) {
     const date = new Date(localDate)
-    const timeZone = 'Europe/Berlin'
-    const zonedDate = utcToZonedTime(date, timeZone)
+    const zonedDate = utcToZonedTime(date, timezone)
     const time = format(zonedDate, 'HH:mm:ss')
     return time
   }
 
-  parseSunriseData(todayData, yesterdayData, locale, currentTime) {
+  parseSunriseData(todayData, yesterdayData, locale, currentTime, city: Location) {
 
-    const todaySunriseTime = this.convertUTCDateToLocalDate(todayData.data.results.sunrise)
-    const yesterdaySunriseTime = this.convertUTCDateToLocalDate(yesterdayData.data.results.sunrise)
+    const todaySunriseTime = this.convertUTCDateToLocalDate(todayData.data.results.sunrise, city.timezone)
+    const yesterdaySunriseTime = this.convertUTCDateToLocalDate(yesterdayData.data.results.sunrise, city.timezone)
     
     const daylightDeltaString = this.daylightDelta(todayData, yesterdayData, locale)
     
@@ -70,7 +70,7 @@ class ContentGenerator {
     const en_deltaString = `There will be ${daylightDeltaString} ${en_deltaType} daylight than yesterday`
     const de_deltaString = `Es wird ${daylightDeltaString} ${de_deltaType} Tageslicht als gestern`
   
-    const sunsetTime = this.convertUTCDateToLocalDate(todayData.data.results.sunset)
+    const sunsetTime = this.convertUTCDateToLocalDate(todayData.data.results.sunset, city.timezone)
     
     const daylightLength = this.calculateDaylight(todayData.data.results.sunrise, todayData.data.results.sunset, locale)
     
@@ -80,11 +80,11 @@ class ContentGenerator {
     let de_tweetString: string;
 
     if (isBefore(todaySunrise, currentTime)) {
-      en_tweetString = `Today in Berlin the sun rose at ${todaySunriseTime} and will set ${daylightLength} later at ${sunsetTime}. ${en_deltaString}`
-      de_tweetString = `Heute in Berlin hat die Sonne um ${todaySunriseTime} aufgegangen, und wird nach ${daylightLength} um ${sunsetTime} untergehen. ${de_deltaString}`
+      en_tweetString = `Today in ${city.name} the sun rose at ${todaySunriseTime} and will set ${daylightLength} later at ${sunsetTime}. ${en_deltaString}`
+      de_tweetString = `Heute in ${city.name} hat die Sonne um ${todaySunriseTime} aufgegangen, und wird nach ${daylightLength} um ${sunsetTime} untergehen. ${de_deltaString}`
     } else {
-      en_tweetString = `Today in Berlin the sun will rise at ${todaySunriseTime} and will set ${daylightLength} later at ${sunsetTime}. ${en_deltaString}`
-      de_tweetString = `Heute in Berlin geht die Sonne um ${todaySunriseTime} auf, und wird nach ${daylightLength} um ${sunsetTime} untergehen. ${de_deltaString}`
+      en_tweetString = `Today in ${city.name} the sun will rise at ${todaySunriseTime} and will set ${daylightLength} later at ${sunsetTime}. ${en_deltaString}`
+      de_tweetString = `Heute in ${city.name} geht die Sonne um ${todaySunriseTime} auf, und wird nach ${daylightLength} um ${sunsetTime} untergehen. ${de_deltaString}`
     }
     
     if (locale == "en") {
