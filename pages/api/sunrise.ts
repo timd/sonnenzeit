@@ -87,7 +87,8 @@ async function getToday(city) {
   const coord = getLatLong(city)
   const today = new Date()
   const urlDate = lightFormat(today, 'yyyy-MM-dd')  
-  const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
+  const url = `${SUNRISE_BASE_URL}/json?lat=${coord.lat}&lng=${coord.long}&formatted=0&date=${urlDate}`
+  // const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
   const headers = { 'User-Agent' : 'Sonnenzeit Twitterbot/0.1 https://github.com/timd/sonnenzeit' }
   return await axios.get(url, { headers: headers})
 }
@@ -98,7 +99,8 @@ async function getYesterday(city) {
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
   const urlDate = lightFormat(yesterday, 'yyyy-MM-dd')
-  const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
+  const url = `${SUNRISE_BASE_URL}/json?lat=${coord.lat}&lng=${coord.long}&formatted=0&date=${urlDate}`
+  //const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
   const headers = { 'User-Agent' : 'Sonnenzeit Twitterbot/0.1 https://github.com/timd/sonnenzeit' }
   return await axios.get(url, { headers: headers})
   

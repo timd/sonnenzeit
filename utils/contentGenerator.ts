@@ -1,9 +1,78 @@
 import { AxiosResponse } from 'axios';
-import { intervalToDuration, parseISO, isBefore, isAfter } from 'date-fns'
+import { intervalToDuration, parseISO, isBefore, differenceInMinutes, differenceInSeconds, differenceInDays } from 'date-fns'
 import { utcToZonedTime, format } from 'date-fns-tz';
 import { Location } from './latlong';
 
 class ContentGenerator {
+
+  calculateSunDelta(todayData, yesterdayData, language): object {
+    
+    // Create date from supplied data
+    const fullTdaySunrise = new Date(todayData.data.results.sunrise)
+    const fullTdaySunset = new Date(todayData.data.results.sunset)
+    const fullYdaySunrise = new Date(yesterdayData.data.results.sunrise)
+    const fullYdaySunset = new Date(yesterdayData.data.results.sunset)
+
+    // Split out the time components
+    const tdaySunrise = [fullTdaySunrise.getHours(), fullTdaySunrise.getMinutes(), fullTdaySunrise.getSeconds()]
+    const tdaySunset = [fullTdaySunset.getHours(), fullTdaySunset.getMinutes(), fullTdaySunset.getSeconds()]
+    const ydaySunrise = [fullYdaySunrise.getHours(), fullYdaySunrise.getMinutes(), fullYdaySunrise.getSeconds()]
+    const ydaySunset = [fullYdaySunset.getHours(), fullYdaySunset.getMinutes(), fullYdaySunset.getSeconds()]
+
+    // Create basedlined dates
+    const baselinedTsunrise = new Date( 2022, 1, 1, tdaySunrise[0], tdaySunrise[1], tdaySunrise[2] )
+    const baselinedTsunset = new Date( 2022, 1, 1, tdaySunset[0], tdaySunset[1], tdaySunset[2] )
+    const baselinedYsunrise = new Date( 2022, 1, 1, ydaySunrise[0], ydaySunrise[1], ydaySunrise[2] )
+    const baselinedYsunset = new Date( 2022, 1, 1, ydaySunset[0], ydaySunset[1], ydaySunset[2] )
+
+    // calculate difference in minutes
+    const sunriseDiffMins = differenceInMinutes(baselinedTsunrise, baselinedYsunrise)
+    const sunsetDiffMins = differenceInMinutes(baselinedTsunset, baselinedYsunset)
+
+    // calculate difference in seconds
+    const sunrisePositive = (differenceInSeconds(baselinedTsunrise, baselinedYsunrise) > 0)
+    const sunriseDiffSecs = differenceInSeconds(baselinedTsunrise, baselinedYsunrise)
+    const sunsetPositive = (differenceInSeconds(baselinedTsunset, baselinedYsunset) > 0)
+    const sunsetDiffSecs = differenceInSeconds(baselinedTsunset, baselinedYsunset)
+    console.log(sunriseDiffSecs)
+
+    // calculate mins & secs
+    var sunriseMinutes = Math.floor(sunriseDiffSecs / 60);
+    var sunsetMinutes = Math.floor(sunsetDiffSecs / 60);
+    var sunriseSeconds = sunriseDiffSecs - (sunriseMinutes * 60);
+    var sunsetSeconds = sunsetDiffSecs - (sunsetMinutes * 60);
+
+    // Assemble string
+    let sunriseDeltaText: string
+    let sunsetDeltaText: string
+    
+    let minSuffix: string
+    let secSuffix: string
+    
+    let sunriseSuffix: string
+    let sunsetSuffix: string
+
+    if (language === "de") {
+      minSuffix = "Min";
+      secSuffix = "Sek";
+      (sunrisePositive) ? sunriseSuffix = "später" : sunriseSuffix = "früher";
+      (sunsetPositive) ? sunsetSuffix = "später" : sunsetSuffix = "früher";
+    } else {
+      minSuffix = "min";
+      secSuffix = "secs";
+      (sunrisePositive) ? sunriseSuffix = "later" : sunriseSuffix = "earlier";
+      (sunsetPositive) ? sunsetSuffix = "later" : sunsetSuffix = "earlier";
+    }
+
+    sunriseDeltaText = `${Math.abs(sunriseMinutes)} ${minSuffix} ${sunriseSeconds} ${secSuffix} ${sunriseSuffix}`
+    sunsetDeltaText = `${Math.abs(sunsetMinutes)} ${minSuffix} ${sunsetSeconds} ${secSuffix} ${sunsetSuffix}`
+
+    return {
+      sunriseDelta: sunriseDeltaText,
+      sunsetDelta: sunsetDeltaText
+    }
+
+  }
 
   daylightDelta(todayData: AxiosResponse, yesterdayData: AxiosResponse, locale: string): string {
     
