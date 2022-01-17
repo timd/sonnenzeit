@@ -1,11 +1,15 @@
 import { AxiosResponse } from 'axios';
-import { intervalToDuration, parseISO, isBefore, differenceInMinutes, differenceInSeconds, differenceInDays } from 'date-fns'
+import { intervalToDuration, parseISO, isBefore, differenceInMinutes, differenceInSeconds, differenceInDays, isAfter } from 'date-fns'
 import { utcToZonedTime, format } from 'date-fns-tz';
 import { Location } from './latlong';
 
+interface SunDelta {
+  sunriseDelta: string,
+  sunsetDelta: string
+}
 class ContentGenerator {
 
-  calculateSunDelta(todayData, yesterdayData, language): object {
+  calculateSunDelta(todayData, yesterdayData, language): SunDelta {
     
     // Create date from supplied data
     const fullTdaySunrise = new Date(todayData.data.results.sunrise)
@@ -20,27 +24,27 @@ class ContentGenerator {
     const ydaySunset = [fullYdaySunset.getHours(), fullYdaySunset.getMinutes(), fullYdaySunset.getSeconds()]
 
     // Create basedlined dates
-    const baselinedTsunrise = new Date( 2022, 1, 1, tdaySunrise[0], tdaySunrise[1], tdaySunrise[2] )
-    const baselinedTsunset = new Date( 2022, 1, 1, tdaySunset[0], tdaySunset[1], tdaySunset[2] )
-    const baselinedYsunrise = new Date( 2022, 1, 1, ydaySunrise[0], ydaySunrise[1], ydaySunrise[2] )
-    const baselinedYsunset = new Date( 2022, 1, 1, ydaySunset[0], ydaySunset[1], ydaySunset[2] )
+    let baselinedTsunrise = new Date( 2022, 1, 1, tdaySunrise[0], tdaySunrise[1], tdaySunrise[2] )
+    let baselinedTsunset = new Date( 2022, 1, 1, tdaySunset[0], tdaySunset[1], tdaySunset[2] )
+    let baselinedYsunrise = new Date( 2022, 1, 1, ydaySunrise[0], ydaySunrise[1], ydaySunrise[2] )
+    let baselinedYsunset = new Date( 2022, 1, 1, ydaySunset[0], ydaySunset[1], ydaySunset[2] )
 
-    // calculate difference in minutes
     const sunriseDiffMins = differenceInMinutes(baselinedTsunrise, baselinedYsunrise)
-    const sunsetDiffMins = differenceInMinutes(baselinedTsunset, baselinedYsunset)
-
-    // calculate difference in seconds
-    const sunrisePositive = (differenceInSeconds(baselinedTsunrise, baselinedYsunrise) > 0)
     const sunriseDiffSecs = differenceInSeconds(baselinedTsunrise, baselinedYsunrise)
-    const sunsetPositive = (differenceInSeconds(baselinedTsunset, baselinedYsunset) > 0)
+    const sunsetDiffMins = differenceInMinutes(baselinedTsunset, baselinedYsunset)
     const sunsetDiffSecs = differenceInSeconds(baselinedTsunset, baselinedYsunset)
-    console.log(sunriseDiffSecs)
 
     // calculate mins & secs
-    var sunriseMinutes = Math.floor(sunriseDiffSecs / 60);
-    var sunsetMinutes = Math.floor(sunsetDiffSecs / 60);
-    var sunriseSeconds = sunriseDiffSecs - (sunriseMinutes * 60);
-    var sunsetSeconds = sunsetDiffSecs - (sunsetMinutes * 60);
+
+    // Check if sunrise time are increasing or decreasing
+    // is today later than yesterday?
+    const isSunriseEarlier = isBefore(baselinedTsunrise, baselinedYsunrise)
+    var sunriseMinutes = Math.floor(Math.abs(sunriseDiffSecs) / 60);
+    var sunriseSeconds = Math.abs(sunriseDiffSecs) - (sunriseMinutes * 60);
+
+    const isSunsetLater = isBefore(baselinedYsunset, baselinedTsunset)
+    var sunsetMinutes = Math.floor(Math.abs(sunsetDiffSecs) / 60);
+    var sunsetSeconds = Math.abs(sunsetDiffSecs) - (sunsetMinutes * 60);
 
     // Assemble string
     let sunriseDeltaText: string
@@ -55,13 +59,13 @@ class ContentGenerator {
     if (language === "de") {
       minSuffix = "Min";
       secSuffix = "Sek";
-      (sunrisePositive) ? sunriseSuffix = "später" : sunriseSuffix = "früher";
-      (sunsetPositive) ? sunsetSuffix = "später" : sunsetSuffix = "früher";
+      (isSunriseEarlier) ? sunriseSuffix = "früher" : sunriseSuffix = "später";
+      (isSunsetLater) ? sunsetSuffix = "später" : sunsetSuffix = "früher";
     } else {
       minSuffix = "min";
       secSuffix = "secs";
-      (sunrisePositive) ? sunriseSuffix = "later" : sunriseSuffix = "earlier";
-      (sunsetPositive) ? sunsetSuffix = "later" : sunsetSuffix = "earlier";
+      (isSunriseEarlier) ? sunriseSuffix = "earlier" : sunriseSuffix = "later";
+      (isSunsetLater) ? sunsetSuffix = "later" : sunsetSuffix = "earlier";
     }
 
     sunriseDeltaText = `${Math.abs(sunriseMinutes)} ${minSuffix} ${sunriseSeconds} ${secSuffix} ${sunriseSuffix}`
@@ -145,15 +149,18 @@ class ContentGenerator {
     
     const todaySunrise = parseISO(todayData.data.results.sunrise)
 
+    const enDelta = this.calculateSunDelta(todayData, yesterdayData, "en")
+    const deDelta = this.calculateSunDelta(todayData, yesterdayData, "de")
+
     let en_tweetString: string;
     let de_tweetString: string;
 
     if (isBefore(todaySunrise, currentTime)) {
-      en_tweetString = `Today in ${city.name} the sun rose at ${todaySunriseTime} and will set ${daylightLength} later at ${sunsetTime}. ${en_deltaString}`
-      de_tweetString = `Heute in ${city.name} hat die Sonne um ${todaySunriseTime} aufgegangen, und wird nach ${daylightLength} um ${sunsetTime} untergehen. ${de_deltaString}`
+      en_tweetString = `Today in ${city.name} the sun rose at ${todaySunriseTime}, ${enDelta.sunriseDelta} than yesterday, and will set ${daylightLength} later at ${sunsetTime}, ${enDelta.sunsetDelta} than yesterday. ${en_deltaString}`
+      de_tweetString = `Heute in ${city.name} hat die Sonne um ${todaySunriseTime} aufgegangen, ${deDelta.sunriseDelta} seit gestern, und wird nach ${daylightLength} um ${sunsetTime} untergehen, ${deDelta.sunsetDelta} seit gestern. ${de_deltaString}`
     } else {
-      en_tweetString = `Today in ${city.name} the sun will rise at ${todaySunriseTime} and will set ${daylightLength} later at ${sunsetTime}. ${en_deltaString}`
-      de_tweetString = `Heute in ${city.name} geht die Sonne um ${todaySunriseTime} auf, und wird nach ${daylightLength} um ${sunsetTime} untergehen. ${de_deltaString}`
+      en_tweetString = `Today in ${city.name} the sun will rise at ${todaySunriseTime}, ${enDelta.sunriseDelta} than yesterday, and will set ${daylightLength} later at ${sunsetTime}, ${enDelta.sunsetDelta} than yesterday. ${en_deltaString}`
+      de_tweetString = `Heute in ${city.name} geht die Sonne um ${todaySunriseTime} auf, ${deDelta.sunriseDelta} seit gestern, und wird nach ${daylightLength} um ${sunsetTime} untergehen, ${deDelta.sunsetDelta} seit gestern. ${de_deltaString}`
     }
     
     if (locale == "en") {
@@ -167,3 +174,5 @@ class ContentGenerator {
 }
 
 export { ContentGenerator }
+      
+

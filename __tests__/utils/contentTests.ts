@@ -1,5 +1,7 @@
 import { ContentGenerator }  from '../../utils/contentGenerator';
 import { parseISO, isAfter, isBefore } from 'date-fns'
+import { loadComponents } from 'next/dist/server/load-components';
+import { getLatLong } from '../../utils/latlong';
 
 const gen = new ContentGenerator();
 
@@ -128,38 +130,42 @@ test('calculates correct daylight hours in German', () => {
 
 test('convertUTCDateToLocalDate', () => {
   let utcDate = "2022-01-08T00:00:00+00:00"
-  let convertedDate = gen.convertUTCDateToLocalDate(utcDate);
+  let convertedDate = gen.convertUTCDateToLocalDate(utcDate, "Europe/Berlin");
   expect(convertedDate).toEqual("01:00:00")
 });
 
 test('correct tense when tweet is posted after sunrise in English', () => {
   // sunrise at 2022-01-09T07:00:00+00:00, test run at 12h00
+  const london = getLatLong('BER-EN')
   let testDate = parseISO("2022-01-09T12:00:00+00:00")
   let sunrise = parseISO(today.data.results.sunrise)
-  let result = gen.parseSunriseData(today, yesterday, "en", testDate)
-  expect(result).toEqual("Today in Berlin the sun rose at 09:00:00 and will set 10 hours, 1 minute later at 19:01:02. There will be 10 mins 35 secs more daylight than yesterday")
+  let result = gen.parseSunriseData(today, yesterday, "en", testDate, london)
+  expect(result).toEqual("Today in Berlin the sun rose at 09:00:00, 60 min 0 secs later than yesterday, and will set 10 hours, 1 minute later at 19:01:02, 60 min 0 secs later than yesterday. There will be 10 mins 35 secs more daylight than yesterday")
 });
 
 test('correct tense when tweet is posted after sunrise in German', () => {
   // sunrise at 2022-01-09T07:00:00+00:00, test run at 10h00
+  const berlin = getLatLong('BER')
   let testDate = parseISO("2022-01-09T10:00:00+00:00")
   let sunrise = parseISO(today.data.results.sunrise)
-  let result = gen.parseSunriseData(today, yesterday, "de", testDate)
-  expect(result).toEqual("Heute in Berlin hat die Sonne um 09:00:00 aufgegangen, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
+  let result = gen.parseSunriseData(today, yesterday, "de", testDate, berlin)
+  expect(result).toEqual("Heute in Berlin hat die Sonne um 09:00:00 aufgegangen, 60 Min 0 Sek später seit gestern, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen, 60 Min 0 Sek später seit gestern. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
 });
 
 test('correct tense when tweet is posted before sunrise in English', () => {
   // sunrise at 2022-01-09T07:00:00+00:00, test run at 03h00
+  const london = getLatLong('BER-EN')
   let testDate = parseISO("2022-01-09T03:00:00+00:00")
   let sunrise = parseISO(today.data.results.sunrise)
-  let result = gen.parseSunriseData(today, yesterday, "en", testDate)
-  expect(result).toEqual("Today in Berlin the sun will rise at 09:00:00 and will set 10 hours, 1 minute later at 19:01:02. There will be 10 mins 35 secs more daylight than yesterday")
+  let result = gen.parseSunriseData(today, yesterday, "en", testDate, london)
+  expect(result).toEqual("Today in Berlin the sun will rise at 09:00:00, 60 min 0 secs later than yesterday, and will set 10 hours, 1 minute later at 19:01:02, 60 min 0 secs later than yesterday. There will be 10 mins 35 secs more daylight than yesterday")
 });
 
 test('correct tense when tweet is posted before sunrise in German', () => {
   // sunrise at 2022-01-09T07:00:00+00:00, test run at 03h00
+  const berlin = getLatLong('BER')
   let testDate = parseISO("2022-01-09T03:00:00+00:00")
   let sunrise = parseISO(today.data.results.sunrise)
-  let result = gen.parseSunriseData(today, yesterday, "de", testDate)
-  expect(result).toEqual("Heute in Berlin geht die Sonne um 09:00:00 auf, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
+  let result = gen.parseSunriseData(today, yesterday, "de", testDate, berlin)
+  expect(result).toEqual("Heute in Berlin geht die Sonne um 09:00:00 auf, 60 Min 0 Sek später seit gestern, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen, 60 Min 0 Sek später seit gestern. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
 });
