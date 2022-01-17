@@ -4,75 +4,92 @@ import { TwitterMock } from '../../utils/twitterMock'
 import { lightFormat } from 'date-fns'
 import { ContentGenerator } from '../../utils/contentGenerator'
 import { locationDb, checkCity, getLatLong, Location } from  '../../utils/latlong'
+import { he } from 'date-fns/locale';
 
 require('dotenv').config()
 
 const generator = new ContentGenerator()
 
 export const SUNRISE_BASE_URL = "https://api.sunrise-sunset.org";
+//export const SUNRISE_BASE_URL = "https://api.met.no/weatherapi/sunrise/2.0/.json"
 
-const mockTwitter = true;
-
-const berlinLat = 52.5170365
-const berlinLong = 13.3888599
+let mockTwitter = false;
+if (process.env.MOCK_TWITTER == "true") {
+  mockTwitter = true;
+}
 
 async function post(payload, city: Location) {
 
-  //const client: TwitterApi
+  let client: TwitterApi
 
   switch (city.twitter) {
     case "sonnezeitberlin": {
+      client = new TwitterApi({
+        appKey: process.env.SONNENZEITBERLIN_APPKEY,
+        appSecret: process.env.SONNENZEITBERLIN_APPSECRET,
+        accessToken: process.env.SONNENZEITBERLIN_ACCESSTOKEN,
+        accessSecret: process.env.SONNENZEITBERLIN_ACCESSSECRET
+      });
       break;
     }
     case "berlindaylight": {
+      client = new TwitterApi({
+        appKey: process.env.BERLINDAYLIGHT_APPKEY,
+        appSecret: process.env.BERLINDAYLIGHT_APPSECRET,
+        accessToken: process.env.BERLINDAYLIGHT_ACCESSTOKEN,
+        accessSecret: process.env.BERLINDAYLIGHT_ACCESSSECRET
+      });
       break;
     }
     case "daylightinnyc": {
+      client = new TwitterApi({
+        appKey: process.env.DAYLIGHTINNYC_APPKEY,
+        appSecret: process.env.DAYLIGHTINNYC_APPSECRET,
+        accessToken: process.env.DAYLIGHTINNYC_ACCESSTOKEN,
+        accessSecret: process.env.DAYLIGHTINNYC_ACCESSSECRET
+      });
       break;
     }
-    case "daylightinsf": {
+    case "daylightinsfo": {
+      client = new TwitterApi({
+        appKey: process.env.DAYLIGHTINSFO_APPKEY,
+        appSecret: process.env.DAYLIGHTINSFO_APPSECRET,
+        accessToken: process.env.DAYLIGHTINSFO_ACCESSTOKEN,
+        accessSecret: process.env.DAYLIGHTINSFO_ACCESSSECRET
+      });
       break;
     }
-    case "sonnezeitberlin": {
+    case "daylightldn": {
+      client = new TwitterApi({
+        appKey: process.env.DAYLIGHTLDN_APPKEY,
+        appSecret: process.env.DAYLIGHTLDN_APPSECRET,
+        accessToken: process.env.DAYLIGHTLDN_ACCESSTOKEN,
+        accessSecret: process.env.DAYLIGHTLDN_ACCESSSECRET
+      });
       break;
     }
     default:
-      return
+      console.log("DEFAULT")
+      break;
   }
 
-  const de_client = new TwitterApi({
-    appKey: process.env.DE_APPKEY,
-    appSecret: process.env.DE_APPSECRET,
-    accessToken: process.env.DE_ACCESSTOKEN,
-    accessSecret: process.env.DE_ACCESSSECRET
-  });
-  
-  const en_client = new TwitterApi({
-    appKey: process.env.EN_APPKEY,
-    appSecret: process.env.EN_APPSECRET,
-    accessToken: process.env.EN_ACCESSTOKEN,
-    accessSecret: process.env.EN_ACCESSSECRET
-  });
-  
   if (mockTwitter) {
     const mock_client = new TwitterMock();
     mock_client.throwError = false;
     return await mock_client.tweet(payload);
   }
 
-  if (city.twitter == "berlindaylight") {
-    return await en_client.v2.tweet(payload);
-  } else if (city.twitter == "sonnezeitberlin"){
-    return await de_client.v2.tweet(payload);
-  }
+  return await client.v2.tweet(payload);
+  
 };
 
 async function getToday(city) {
   const coord = getLatLong(city)
   const today = new Date()
   const urlDate = lightFormat(today, 'yyyy-MM-dd')  
-  const url = `${SUNRISE_BASE_URL}/json?lat=${coord.lat}&lng=${coord.long}&formatted=0&date=${urlDate}`
-  return await axios.get(url)
+  const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
+  const headers = { 'User-Agent' : 'Sonnenzeit Twitterbot/0.1 https://github.com/timd/sonnenzeit' }
+  return await axios.get(url, { headers: headers})
 }
 
 async function getYesterday(city) {
@@ -81,13 +98,13 @@ async function getYesterday(city) {
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
   const urlDate = lightFormat(yesterday, 'yyyy-MM-dd')
-  const url = `${SUNRISE_BASE_URL}/json?lat=${coord.lat}&lng=${coord.long}&formatted=0&date=${urlDate}`
-  return await axios.get(url)
+  const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
+  const headers = { 'User-Agent' : 'Sonnenzeit Twitterbot/0.1 https://github.com/timd/sonnenzeit' }
+  return await axios.get(url, { headers: headers})
+  
 }
 
 export default async function handler(req, res) {
-
-  console.log(res.query)
 
   if (req.headers['x-api-token'] != process.env.SERVICE_ACCESSTOKEN) {
     return res.status(401).json('{error : "invalid token"}')
@@ -113,6 +130,7 @@ export default async function handler(req, res) {
     fetchedTodayResponse = todayResponse
     return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, city.language, new Date(), city)
   }).then( tweetContent => {
+    console.log(`Content: ${tweetContent}`)
     return post(tweetContent, city);
   }).then( postResults => {
     res.status(200).json(postResults)
