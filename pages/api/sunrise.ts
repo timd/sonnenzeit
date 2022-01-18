@@ -59,7 +59,7 @@ async function post(payload, city: Location) {
       });
       break;
     }
-    case "daylightldn": {
+    case "daylightlondon": {
       client = new TwitterApi({
         appKey: process.env.DAYLIGHTLDN_APPKEY,
         appSecret: process.env.DAYLIGHTLDN_APPSECRET,
