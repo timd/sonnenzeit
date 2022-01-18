@@ -157,10 +157,10 @@ class ContentGenerator {
 
     if (isBefore(todaySunrise, currentTime)) {
       en_tweetString = `Today in ${city.name} the sun rose at ${todaySunriseTime}, ${enDelta.sunriseDelta} than yesterday, and will set ${daylightLength} later at ${sunsetTime}, ${enDelta.sunsetDelta} than yesterday. ${en_deltaString}`
-      de_tweetString = `Heute in ${city.name} hat die Sonne um ${todaySunriseTime} aufgegangen, ${deDelta.sunriseDelta} seit gestern, und wird nach ${daylightLength} um ${sunsetTime} untergehen, ${deDelta.sunsetDelta} seit gestern. ${de_deltaString}`
+      de_tweetString = `Heute in ${city.name} hat die Sonne um ${todaySunriseTime} aufgegangen, ${deDelta.sunriseDelta} als gestern, und wird nach ${daylightLength} um ${sunsetTime} untergehen, ${deDelta.sunsetDelta} seit gestern. ${de_deltaString}`
     } else {
       en_tweetString = `Today in ${city.name} the sun will rise at ${todaySunriseTime}, ${enDelta.sunriseDelta} than yesterday, and will set ${daylightLength} later at ${sunsetTime}, ${enDelta.sunsetDelta} than yesterday. ${en_deltaString}`
-      de_tweetString = `Heute in ${city.name} geht die Sonne um ${todaySunriseTime} auf, ${deDelta.sunriseDelta} seit gestern, und wird nach ${daylightLength} um ${sunsetTime} untergehen, ${deDelta.sunsetDelta} seit gestern. ${de_deltaString}`
+      de_tweetString = `Heute in ${city.name} geht die Sonne um ${todaySunriseTime} auf, ${deDelta.sunriseDelta} als gestern, und wird nach ${daylightLength} um ${sunsetTime} untergehen, ${deDelta.sunsetDelta} seit gestern. ${de_deltaString}`
     }
     
     if (locale == "en") {
