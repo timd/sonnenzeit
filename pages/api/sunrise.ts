@@ -3,55 +3,107 @@ import axios from 'axios';
 import { TwitterMock } from '../../utils/twitterMock'
 import { lightFormat } from 'date-fns'
 import { ContentGenerator } from '../../utils/contentGenerator'
+import { locationDb, checkCity, getLatLong, Location } from  '../../utils/latlong'
+import { he } from 'date-fns/locale';
 
 require('dotenv').config()
 
 const generator = new ContentGenerator()
 
-const de_client = new TwitterApi({
-  appKey: process.env.DE_APPKEY,
-  appSecret: process.env.DE_APPSECRET,
-  accessToken: process.env.DE_ACCESSTOKEN,
-  accessSecret: process.env.DE_ACCESSSECRET
-});
+export const SUNRISE_BASE_URL = "https://api.sunrise-sunset.org";
+//export const SUNRISE_BASE_URL = "https://api.met.no/weatherapi/sunrise/2.0/.json"
 
-const en_client = new TwitterApi({
-  appKey: process.env.EN_APPKEY,
-  appSecret: process.env.EN_APPSECRET,
-  accessToken: process.env.EN_ACCESSTOKEN,
-  accessSecret: process.env.EN_ACCESSSECRET
-});
+let mockTwitter = false;
+if (process.env.MOCK_TWITTER == "true") {
+  mockTwitter = true;
+}
 
-const mock_client = new TwitterMock();
+async function post(payload, city: Location) {
 
-const berlinLat = 52.5170365
-const berlinLong = 13.3888599
+  let client: TwitterApi
 
-async function post(payload, locale) {
-  if (locale == "en") {
-    return await en_client.v2.tweet(payload);
-  } else if (locale == "de"){
-    return await de_client.v2.tweet(payload);
-  } else {
+  switch (city.twitter) {
+    case "sonnezeitberlin": {
+      client = new TwitterApi({
+        appKey: process.env.SONNENZEITBERLIN_APPKEY,
+        appSecret: process.env.SONNENZEITBERLIN_APPSECRET,
+        accessToken: process.env.SONNENZEITBERLIN_ACCESSTOKEN,
+        accessSecret: process.env.SONNENZEITBERLIN_ACCESSSECRET
+      });
+      break;
+    }
+    case "berlindaylight": {
+      client = new TwitterApi({
+        appKey: process.env.BERLINDAYLIGHT_APPKEY,
+        appSecret: process.env.BERLINDAYLIGHT_APPSECRET,
+        accessToken: process.env.BERLINDAYLIGHT_ACCESSTOKEN,
+        accessSecret: process.env.BERLINDAYLIGHT_ACCESSSECRET
+      });
+      break;
+    }
+    case "daylightinnyc": {
+      client = new TwitterApi({
+        appKey: process.env.DAYLIGHTINNYC_APPKEY,
+        appSecret: process.env.DAYLIGHTINNYC_APPSECRET,
+        accessToken: process.env.DAYLIGHTINNYC_ACCESSTOKEN,
+        accessSecret: process.env.DAYLIGHTINNYC_ACCESSSECRET
+      });
+      break;
+    }
+    case "daylightinsfo": {
+      client = new TwitterApi({
+        appKey: process.env.DAYLIGHTINSFO_APPKEY,
+        appSecret: process.env.DAYLIGHTINSFO_APPSECRET,
+        accessToken: process.env.DAYLIGHTINSFO_ACCESSTOKEN,
+        accessSecret: process.env.DAYLIGHTINSFO_ACCESSSECRET
+      });
+      break;
+    }
+    case "daylightlondon": {
+      client = new TwitterApi({
+        appKey: process.env.DAYLIGHTLDN_APPKEY,
+        appSecret: process.env.DAYLIGHTLDN_APPSECRET,
+        accessToken: process.env.DAYLIGHTLDN_ACCESSTOKEN,
+        accessSecret: process.env.DAYLIGHTLDN_ACCESSSECRET
+      });
+      break;
+    }
+    default:
+      console.log("DEFAULT")
+      break;
+  }
+
+  if (mockTwitter) {
+    const mock_client = new TwitterMock();
     mock_client.throwError = false;
     return await mock_client.tweet(payload);
   }
+
+  return await client.v2.tweet(payload);
+  
 };
 
-async function getToday() {
+async function getToday(city) {
+  const coord = getLatLong(city)
   const today = new Date()
   const urlDate = lightFormat(today, 'yyyy-MM-dd')  
-  const url = `https://api.sunrise-sunset.org/json?lat=${berlinLat}&lng=${berlinLong}&formatted=0&date=${urlDate}`
-  return await axios.get(url)
+  const url = `${SUNRISE_BASE_URL}/json?lat=${coord.lat}&lng=${coord.long}&formatted=0&date=${urlDate}`
+  // const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
+  const headers = { 'User-Agent' : 'Sonnenzeit Twitterbot/0.1 https://github.com/timd/sonnenzeit' }
+  return await axios.get(url, { headers: headers})
 }
 
-async function getYesterday() {
+async function getYesterday(city) {
+  const coord = getLatLong(city)
   const today = new Date()
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)
   const urlDate = lightFormat(yesterday, 'yyyy-MM-dd')
-  const url = `https://api.sunrise-sunset.org/json?lat=${berlinLat}&lng=${berlinLong}&formatted=0&date=${urlDate}`
-  return await axios.get(url)
+  const url = `${SUNRISE_BASE_URL}/json?lat=${coord.lat}&lng=${coord.long}&formatted=0&date=${urlDate}`
+  //const url = `${SUNRISE_BASE_URL}?lat=${coord.lat}&lon=${coord.long}&date=${urlDate}&offset=00:00`
+  const headers = { 'User-Agent' : 'Sonnenzeit Twitterbot/0.1 https://github.com/timd/sonnenzeit' }
+  return await axios.get(url, { headers: headers})
+  
 }
 
 export default async function handler(req, res) {
@@ -59,22 +111,29 @@ export default async function handler(req, res) {
   if (req.headers['x-api-token'] != process.env.SERVICE_ACCESSTOKEN) {
     return res.status(401).json('{error : "invalid token"}')
   }
+
+  if (req.query['city']) {
+    if (!checkCity(req.query['city'])) {
+      return res.status(422).json('{error : "invalid city"}')  
+    }
+  } else {
+    return res.status(422).json('{error : "invalid query"}')
+  }
+
+  let city = locationDb[req.query['city']]
   
   var fetchedYesterdayResponse
   var fetchedTodayResponse
 
-  await getYesterday().then ( yesterdayResponse => {
+  await getYesterday(req.query['city']).then ( yesterdayResponse => {
     fetchedYesterdayResponse = yesterdayResponse
-    return getToday()
+    return getToday(req.query['city'])
   }).then( todayResponse => {
     fetchedTodayResponse = todayResponse
-    return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, "en", new Date())
+    return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, city.language, new Date(), city)
   }).then( tweetContent => {
-    return post(tweetContent, "en");
-  }).then( (postResults) => {
-    return generator.parseSunriseData(fetchedTodayResponse, fetchedYesterdayResponse, "de", new Date())
-  }).then( tweetContent => {
-    return post(tweetContent, "de");
+    console.log(`Content: ${tweetContent}`)
+    return post(tweetContent, city);
   }).then( postResults => {
     res.status(200).json(postResults)
   }).catch( (err) => {
