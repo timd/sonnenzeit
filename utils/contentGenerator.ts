@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import { intervalToDuration, parseISO, isBefore, differenceInMinutes, differenceInSeconds, differenceInDays, isAfter } from 'date-fns'
+import { intervalToDuration, parseISO, isBefore, differenceInMinutes, differenceInSeconds, differenceInDays, isAfter, min } from 'date-fns'
 import { utcToZonedTime, format } from 'date-fns-tz';
 import { Location } from './latlong';
 
@@ -87,13 +87,15 @@ class ContentGenerator {
     const minutesDelta = Math.floor(daylightDeltaSeconds / 60)
     const secsDelta = daylightDeltaSeconds - (minutesDelta * 60)
 
-    const en_minLabel = (minutesDelta == 1 ? "min" : "mins")
+    const correctedMinutesDelta = Math.abs(minutesDelta);
+
+    const en_minLabel = (correctedMinutesDelta == 1 ? "min" : "mins")
     const en_secLabel = (secsDelta == 1 ? "sec" : "secs")
 
     const de_minLabel = "Min"
     const de_secLabel = "Sek"
 
-    const deltaString = (locale == "en") ? `${minutesDelta} ${en_minLabel} ${secsDelta} ${en_secLabel}` : `${minutesDelta} ${de_minLabel} ${secsDelta} ${de_secLabel}`
+    const deltaString = (locale == "en") ? `${correctedMinutesDelta} ${en_minLabel} ${secsDelta} ${en_secLabel}` : `${correctedMinutesDelta} ${de_minLabel} ${secsDelta} ${de_secLabel}`
 
     return deltaString
   }
