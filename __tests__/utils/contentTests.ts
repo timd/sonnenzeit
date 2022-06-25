@@ -5,6 +5,24 @@ import { getLatLong } from '../../utils/latlong';
 
 const gen = new ContentGenerator();
 
+/*
+{
+	"results": {
+		"sunrise": "2022-06-25T02:42:12+00:00",
+		"sunset": "2022-06-25T19:36:00+00:00",
+		"solar_noon": "2022-06-25T11:09:06+00:00",
+		"day_length": 60828,
+		"civil_twilight_begin": "2022-06-25T01:54:26+00:00",
+		"civil_twilight_end": "2022-06-25T20:23:46+00:00",
+		"nautical_twilight_begin": "2022-06-25T00:31:34+00:00",
+		"nautical_twilight_end": "2022-06-25T21:46:38+00:00",
+		"astronomical_twilight_begin": "1970-01-01T00:00:01+00:00",
+		"astronomical_twilight_end": "1970-01-01T00:00:01+00:00"
+	},
+	"status": "OK"
+}
+*/
+
 const yesterday = {
   data: {
     results: {
@@ -149,7 +167,7 @@ test('correct tense when tweet is posted after sunrise in German', () => {
   let testDate = parseISO("2022-01-09T10:00:00+00:00")
   let sunrise = parseISO(today.data.results.sunrise)
   let result = gen.parseSunriseData(today, yesterday, "de", testDate, berlin)
-  expect(result).toEqual("Heute in Berlin hat die Sonne um 09:00:00 aufgegangen, 60 Min 0 Sek später seit gestern, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen, 60 Min 0 Sek später seit gestern. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
+  expect(result).toEqual("Heute in Berlin hat die Sonne um 09:00:00 aufgegangen, 60 Min 0 Sek später als gestern, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen, 60 Min 0 Sek später seit gestern. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
 });
 
 test('correct tense when tweet is posted before sunrise in English', () => {
@@ -167,5 +185,105 @@ test('correct tense when tweet is posted before sunrise in German', () => {
   let testDate = parseISO("2022-01-09T03:00:00+00:00")
   let sunrise = parseISO(today.data.results.sunrise)
   let result = gen.parseSunriseData(today, yesterday, "de", testDate, berlin)
-  expect(result).toEqual("Heute in Berlin geht die Sonne um 09:00:00 auf, 60 Min 0 Sek später seit gestern, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen, 60 Min 0 Sek später seit gestern. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
+  expect(result).toEqual("Heute in Berlin geht die Sonne um 09:00:00 auf, 60 Min 0 Sek später als gestern, und wird nach 10 Stunden, 1 Minute um 19:01:02 untergehen, 60 Min 0 Sek später seit gestern. Es wird 10 Min 35 Sek mehr Tageslicht als gestern")
+});
+
+test('calculates sundelta correctly for increasing day length', () => {
+
+  const yesterday = {
+    data: {
+        "results": {
+          "sunrise": "2022-06-01T02:47:13+00:00",
+          "sunset": "2022-06-01T19:21:21+00:00",
+          "solar_noon": "2022-06-01T11:04:17+00:00",
+          "day_length": 59648,
+          "civil_twilight_begin": "2022-06-01T02:01:53+00:00",
+          "civil_twilight_end": "2022-06-01T20:06:41+00:00",
+          "nautical_twilight_begin": "2022-06-01T00:48:48+00:00",
+          "nautical_twilight_end": "2022-06-01T21:19:46+00:00",
+          "astronomical_twilight_begin": "1970-01-01T00:00:01+00:00",
+          "astronomical_twilight_end": "1970-01-01T00:00:01+00:00"
+        },
+        "status": "OK"
+      },
+    statusText: 'OK',
+    headers: {},
+    config: {},
+    request: {}
+  }
+  
+  const today = {
+    data: {
+        "results": {
+          "sunrise": "2022-06-02T02:46:24+00:00",
+          "sunset": "2022-06-02T19:22:29+00:00",
+          "solar_noon": "2022-06-02T11:04:26+00:00",
+          "day_length": 59765,
+          "civil_twilight_begin": "2022-06-02T02:00:51+00:00",
+          "civil_twilight_end": "2022-06-02T20:08:02+00:00",
+          "nautical_twilight_begin": "2022-06-02T00:46:57+00:00",
+          "nautical_twilight_end": "2022-06-02T21:21:56+00:00",
+          "astronomical_twilight_begin": "1970-01-01T00:00:01+00:00",
+          "astronomical_twilight_end": "1970-01-01T00:00:01+00:00"
+        },
+        "status": "OK",
+        headers: {},
+        config: {},
+        request: {}
+      }
+  }
+
+  let result = gen.daylightDelta(today, yesterday, "en");
+  expect(result).toBe("1 min 57 secs");
+
+});
+
+test('calculates sundelta correctly for decreasing day length', () => {
+
+  const yesterday = {
+    data: {
+        results: {
+          sunrise: "2022-06-24T02:41:48+00:00",
+          sunset: "2022-06-24T19:35:59+00:00",
+          solar_noon: "2022-06-24T11:08:53+00:00",
+          day_length: 60851,
+          civil_twilight_begin: "2022-06-24T01:53:59+00:00",
+          civil_twilight_end: "2022-06-24T20:23:48+00:00",
+          nautical_twilight_begin: "2022-06-24T00:30:52+00:00",
+          nautical_twilight_end: "2022-06-24T21:46:54+00:00",
+          astronomical_twilight_begin: "1970-01-01T00:00:01+00:00",
+          astronomical_twilight_end: "1970-01-01T00:00:01+00:00"
+        },
+        status: "OK"
+      },
+    statusText: 'OK',
+    headers: {},
+    config: {},
+    request: {}
+  }
+  
+  const today = {
+    data: {
+        results: {
+          sunrise: "2022-06-25T02:42:12+00:00",
+          sunset: "2022-06-25T19:36:00+00:00",
+          solar_noon: "2022-06-25T11:09:06+00:00",
+          day_length: 60828,
+          civil_twilight_begin: "2022-06-25T01:54:26+00:00",
+          civil_twilight_end: "2022-06-25T20:23:46+00:00",
+          nautical_twilight_begin: "2022-06-25T00:31:34+00:00",
+          nautical_twilight_end: "2022-06-25T21:46:38+00:00",
+          astronomical_twilight_begin: "1970-01-01T00:00:01+00:00",
+          astronomical_twilight_end: "1970-01-01T00:00:01+00:00"
+        },
+        status: 'OK',
+        headers: {},
+        config: {},
+        request: {}
+      }
+  }
+
+  let result = gen.daylightDelta(today, yesterday, "en");
+  expect(result).toBe("1 min 37 secs");
+
 });

@@ -7,10 +7,34 @@ describe('When calculating the increase/decrease in sunrise time', () => {
 
   describe("in English", () => {
 
+		// "sunrise": "2022-06-25T02:42:12+00:00",
+		// "sunset": "2022-06-25T19:36:00+00:00",
+
+    // "sunrise": "2022-06-24T02:41:48+00:00",
+		// "sunset": "2022-06-24T19:35:59+00:00",
+
+
+
     it('should correctly calulate an earlier sunrise', () => {
       const test_tday = {
         data: {
-          results: { sunrise: "2022-01-08T08:10:00+00:00", sunset: "2022-01-08T19:11:00+00:00" }
+          results: { sunrise: "2022-06-25T02:42:12+00:00", sunset: "2022-06-25T19:36:00+00:00" }
+        }
+      }
+		  
+      const test_yday = {
+        data: {
+          results: { sunrise: "2022-06-24T02:41:48+00:00", sunset: "2022-06-24T19:35:59+00:00" }
+        }
+      }
+      
+      expect(gen.calculateSunDelta(test_tday, test_yday, "en").sunriseDelta).toEqual("0 min 24 secs later");
+    })
+
+    it('should correctly calulate an earlier sunrise', () => {
+      const test_tday = {
+        data: {
+          results: { sunrise: "2022-01-08T08:10:00+00:00", sunset: "2022-01-08T19:11:00+00:00" }
         }
       }
 		  
@@ -72,6 +96,11 @@ describe('When calculating the increase/decrease in sunrise time', () => {
 
     })
 
+    it('should calculate shorter day correctly', () => {
+
+
+    })
+
   })
 
   describe("in German", () => {
@@ -95,7 +124,7 @@ describe('When calculating the increase/decrease in sunrise time', () => {
     it('should correctly calulate an later sunrise', () => {
       const test_tday = {
         data: {
-          results: { sunrise: "2022-01-08T08:10:11+00:00", sunset: "2022-01-08T19:00:00+00:00" }
+          results: { sunrise: "2022-01-08T08:10:11+00:00", sunset: "2022-01-08T19:00:00+00:00" }
         }
       }
 		  
@@ -111,7 +140,7 @@ describe('When calculating the increase/decrease in sunrise time', () => {
     it('should correctly calulate an earlier sunset', () => {
       const test_tday = {
         data: {
-          results: { sunrise: "2022-01-08T08:00:00+00:00", sunset: "2022-01-08T19:10:00+00:00" }
+          results: { sunrise: "2022-01-08T08:00:00+00:00", sunset: "2022-01-08T19:10:00+00:00" }
         }
       }
 		  

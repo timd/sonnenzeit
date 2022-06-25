@@ -4,7 +4,6 @@ import { TwitterMock } from '../../utils/twitterMock'
 import { lightFormat } from 'date-fns'
 import { ContentGenerator } from '../../utils/contentGenerator'
 import { locationDb, checkCity, getLatLong, Location } from  '../../utils/latlong'
-import { he } from 'date-fns/locale';
 
 require('dotenv').config()
 
@@ -12,11 +11,6 @@ const generator = new ContentGenerator()
 
 export const SUNRISE_BASE_URL = "https://api.sunrise-sunset.org";
 //export const SUNRISE_BASE_URL = "https://api.met.no/weatherapi/sunrise/2.0/.json"
-
-let mockTwitter = false;
-if (process.env.MOCK_TWITTER == "true") {
-  mockTwitter = true;
-}
 
 async function post(payload, city: Location) {
 
@@ -73,11 +67,19 @@ async function post(payload, city: Location) {
       break;
   }
 
-  if (mockTwitter) {
+  //let mockTwitter = false;
+  if (process.env.MOCK_TWITTER == "true") {
+    //mockTwitter = true;
     const mock_client = new TwitterMock();
     mock_client.throwError = false;
     return await mock_client.tweet(payload);
   }
+
+  // if (mockTwitter) {
+  //   const mock_client = new TwitterMock();
+  //   mock_client.throwError = false;
+  //   return await mock_client.tweet(payload);
+  // }
 
   return await client.v2.tweet(payload);
   
