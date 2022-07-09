@@ -62,6 +62,15 @@ async function post(payload, city: Location) {
       });
       break;
     }
+    case "lakesdaylight": {
+      client = new TwitterApi({
+        appKey: process.env.LAKESDAYLIGHT_APPKEY,
+        appSecret: process.env.LAKESDAYLIGHT_APPSECRET,
+        accessToken: process.env.LAKESDAYLIGHT_ACCESSTOKEN,
+        accessSecret: process.env.LAKESDAYLIGHT_ACCESSSECRET
+      });
+      break;
+    }
     default:
       console.log("DEFAULT")
       break;
