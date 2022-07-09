@@ -81,7 +81,9 @@ async function post(payload, city: Location) {
   //   return await mock_client.tweet(payload);
   // }
 
-  return await client.v2.tweet(payload);
+  const results = await client.v2.tweet(payload);
+  console.log(results);
+  return results;
   
 };
 
