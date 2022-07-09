@@ -14,6 +14,7 @@ export const locationDb: Record<string, Location> = {
   'NYC': { name: "New York City", timezone: "America/New_York", twitter: "daylightinnyc", language: "en", lat: 40.77813, long: -73.96866, locale:"enGB" },
   'SFO': { name: "San Francisco", timezone: "America/Los_Angeles", twitter: "daylightinsfo", language: "en", lat: 37.82116, long: -122.47811, locale:"enGB" },
   'LON': { name: "London", timezone: "Europe/London", twitter: "daylightlondon", lat: 51.50975, language: "en", long: -0.12666, locale:"enGB" },
+  'LAKES': { name: "the Lake District", timezone: "Europe/London", twitter: "lakesdaylight", lat: 54.51434, language: "en", long: 3.63689, locale:"enGB" },
 }
 
 function getLatLong(city: string): Location {
